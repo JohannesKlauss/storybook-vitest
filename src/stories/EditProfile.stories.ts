@@ -1,9 +1,9 @@
 import type {Meta, StoryObj} from '@storybook/react';
-import {Modal} from './Modal';
+import {EditProfile} from './EditProfile.tsx';
 import {expect, fn, userEvent, waitFor} from "@storybook/test";
 
-const meta: Meta<typeof Modal> = {
-  title: 'Example/Modal',
+const meta: Meta<typeof EditProfile> = {
+  title: 'Edit Profile',
   parameters: {
     layout: 'centered',
   },
@@ -12,31 +12,29 @@ const meta: Meta<typeof Modal> = {
     name: {control: 'text'},
     email: {control: 'text'},
   },
-  args: {onSubmit: fn()},
-  component: Modal,
+  args: {
+    name: '',
+    email: '',
+    onSubmit: fn(),
+  },
+  component: EditProfile
 };
 
 export default meta;
-type Story = StoryObj<typeof Modal>;
+type Story = StoryObj<typeof EditProfile>;
 
 export const Default: Story = {
-  play: async ({canvas}) => {
-    await expect(canvas.getByRole('button', {name: /edit your spaceteams profile/i})).toBeInTheDocument();
-  }
 }
 
-export const WithDefaults: Story = {
+export const WithPrefilledData: Story = {
   args: {
     name: "Johannes",
-    email: "johannes.klauss@spaceteams.de",
+    email: "johannes.klauss@spaceteams.de"
   }
 };
 
 export const Opened: Story = {
-  args: {
-    name: "Johannes",
-    email: "johannes.klauss@spaceteams.de",
-  },
+  ...WithPrefilledData,
   play: async ({canvas}) => {
     await userEvent.click(canvas.getByRole('button', {name: /edit your spaceteams profile/i}));
 
@@ -44,14 +42,14 @@ export const Opened: Story = {
     await expect(canvas.getByLabelText(/email/i)).toBeInTheDocument();
     await expect(canvas.getByRole('button', {name: /save changes/i})).toBeInTheDocument();
   }
-};
+}
 
-export const SaveChanges: Story = {
-  ...Opened,
+export const ChangeSettings: Story = {
+  ...WithPrefilledData,
   play: async (context) => {
     await Opened.play?.(context)
 
-    await context.step('Change data', async () => {
+    await context.step('change profile data', async () => {
       await userEvent.clear(context.canvas.getByLabelText(/name/i))
       await userEvent.type(context.canvas.getByLabelText(/name/i), 'Kassem')
 
@@ -61,7 +59,7 @@ export const SaveChanges: Story = {
 
     await userEvent.click(context.canvas.getByRole('button', {name: /save changes/i}))
 
-    await waitFor(() => expect(context.args.onSubmit).toHaveBeenCalledWith('Kassem', 'kassem.thome@spaceteams.de'));
+    await waitFor(() => expect(context.args.onSubmit).toHaveBeenCalledWith('Kassem', 'kassem.thome@spaceteams.de'))
 
     await expect(context.canvas.queryByRole('button', {name: /save changes/i})).not.toBeInTheDocument();
   }
